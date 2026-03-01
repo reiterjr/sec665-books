@@ -1,0 +1,288 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Getting Started With Syscalls - syscalls</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="getting-started.html" class="active"><strong aria-hidden="true">1.</strong> Getting Started With Syscalls</a></li><li class="chapter-item expanded "><a href="flow-to-syscall.html"><strong aria-hidden="true">2.</strong> The flow to a syscall</a></li><li class="chapter-item expanded "><a href="direct-syscalls.html"><strong aria-hidden="true">3.</strong> What is a direct syscall?</a></li><li class="chapter-item expanded "><a href="test-instruction.html"><strong aria-hidden="true">4.</strong> The test instruction</a></li><li class="chapter-item expanded "><a href="interrupts.html"><strong aria-hidden="true">5.</strong> Interrupts</a></li><li class="chapter-item expanded "><a href="indirect-syscalls.html"><strong aria-hidden="true">6.</strong> Indirect syscalls</a></li><li class="chapter-item expanded "><a href="syscall-instruction.html"><strong aria-hidden="true">7.</strong> The SYSCALL instruction</a></li><li class="chapter-item expanded "><a href="handling-syscalls.html"><strong aria-hidden="true">8.</strong> Handling syscalls</a></li><li class="chapter-item expanded "><a href="ki-system-service-repeat.html"><strong aria-hidden="true">9.</strong> KiSystemServiceRepeat</a></li><li class="chapter-item expanded "><a href="the-end.html"><strong aria-hidden="true">10.</strong> The end</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">syscalls</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="getting-started-with-syscalls"><a class="header" href="#getting-started-with-syscalls">Getting started with syscalls</a></h1>
+<h2 id="what-is-a-system-call"><a class="header" href="#what-is-a-system-call">What is a system call?</a></h2>
+<p>If you look online for MSDN documentation around the word syscall or system call, you might come up empty handed. You might even hit this <a href="https://learn.microsoft.com/en-us/cpp/c-runtime-library/system-calls?view=msvc-170">page</a> thinking you found something of interest. Nope. Not even close. Perhaps some of the best, formal documentation is found in the Windows Internals books when describing system service calls, trapping, and overall system service handling. Windows Internals Chapter 8: System mechanics talks about this, in great detail. Something I might cover way later near the end of this thread.</p>
+<p>In general, a system call is an interrupt that will interrupt the system (kernel) and invoke a service routine according to an index value. This value is what is commonly referred to as the system service call number, or system service number, or syscall ID. The kernel will handle the dispatching of the routine.</p>
+<p>Perhaps the best source for this is from the Intel Software Developer Manual where it is defined that a syscall is a fast system call to privilege level 0 system procedures.</p>
+<h1 id="what-generates-a-system-call"><a class="header" href="#what-generates-a-system-call">What generates a system call?</a></h1>
+<p>For our purposes here in this thread, syscall is interchangeable with system call. From here on out I will just use the word syscall. These are generated by invoking the instruction <code>syscall</code> or the <code>int 2e</code> instruction. These instructions are heavily found in two low level DLLs: <code>ntdll.dll</code> and <code>win32u.dll</code>.</p>
+<h1 id="where-do-syscalls-come-from"><a class="header" href="#where-do-syscalls-come-from">Where do syscalls come from?</a></h1>
+<h2 id="gui-vs-native"><a class="header" href="#gui-vs-native">GUI vs Native</a></h2>
+<p>Short answer: it depends. Longer answer, a syscall can from from GUI applications that depend on <code>win32u.dll</code> or Native applications where the only dependency is <code>ntdll.dll</code>.</p>
+<h3 id="win32udll"><a class="header" href="#win32udll">win32u.dll</a></h3>
+<p>This module is the lowest level DLL for all GUI applications or rather GUI threads to be the most technically accurate. Something that will become clearer later on is this DLL has a system call table identifier of <code>0x20</code>. This module implements many syscalls like <code>win32u!NtUserCloseClipboard</code> or <code>win32u!NtUserOpenClipboard</code>. Bottom line here is practically anything that happens from a GUI window will trickle its way down to this module.</p>
+<p>On my Dev VM, my version of <code>win32u.dll</code> has 5,411 syscalls implemented.</p>
+<h3 id="ntdlldll"><a class="header" href="#ntdlldll">ntdll.dll</a></h3>
+<p>This module is the lowest level DLL for all native functions that are not related to GUIs. Typically you will see a native function with the two-letter prefix <code>Nt</code>, but don't be fooled, <code>Nt</code> functions are also implemented inside <code>win32u.dll</code>. Bottom line here is anything stemming from native programs, like programs that execute early on in the boot process (the session manager: <code>smss.exe</code>) will trickle its way down to this module.</p>
+<p>This graphic shows a nice represenation of the flow a syscall can take depending on the process (GUI vs Native).</p>
+<h1 id="how-is-a-syscall-structured"><a class="header" href="#how-is-a-syscall-structured">How is a syscall structured?</a></h1>
+<h2 id="the-generic-format"><a class="header" href="#the-generic-format">The generic format</a></h2>
+<p>All syscalls, no matter if they come from win32u.dll or ntdll.dll, will all have the same kind of structure. You might even think of it as a signature, a signature that can be scanned for in memory just like what is done in a lab for Day 5, or Section 5 for OnDemand students :grin:. Here is what the format looks like:</p>
+<pre><code class="language-asm">4c8bd1           mov     r10, rcx
+b8c3100000       mov     eax, &lt;some number here&gt;
+f604250803fe7f01 test    byte ptr [7FFE0308h], 1
+7503             jne     &lt;module_name&gt;!&lt;Some Nt function&gt;+0x15
+0f05             syscall 
+c3               ret     
+cd2e             int     2Eh
+c3               ret     
+0f1f840000000000 nop     dword ptr [rax+rax]
+</code></pre>
+<p>Let's break it down a bit more...</p>
+<pre><code class="language-asm">mov r10, rcx
+</code></pre>
+<p>For x64 CPUs and of course x64 code, the first parameter is typically found in <code>RCX</code>. You will see that <code>RCX</code> is moved into <code>R10</code> and this is obviously intentional.</p>
+<h2 id="why-is-this-intentional"><a class="header" href="#why-is-this-intentional">Why is this intentional?</a></h2>
+<p>Because the code can eventually execute the <code>syscall</code> instruction, it has to get rid of the <code>RCX</code> value and move it into <code>R10</code>. Further, <code>syscall</code> will destroy the <code>RCX</code> register and load it with the return address. If the <code>MOV</code> is not done, the first parameter will be lost. You can't use <code>R11</code> either since it will be clobbered by <code>syscall</code> so the last best option was <code>R10</code> to hold the first parameter as code transitions into Ring 0.</p>
+<h2 id="whats-next"><a class="header" href="#whats-next">What's next?</a></h2>
+<p>Let's continue breaking it down...</p>
+<pre><code class="language-asm">mov     eax, &lt;some number here&gt;
+</code></pre>
+<p><code>&lt;some number here&gt;</code> will be reserved for the number of the syscall to be "called". Again, this is really an index into a table that we can take a look at later in this series of threads using a kernel debugger.</p>
+<p>Here is one full example for a syscall from win32u.dll:</p>
+<pre><code class="language-asm">4c8bd1           mov     r10, rcx
+b8c3100000       mov     eax, 10C3h
+</code></pre>
+<p>For the function <code>win32u!NtUserOpenClipboard</code> the above number is tied to that function.</p>
+<p>I'm going to skip...</p>
+<pre><code class="language-asm">test    byte ptr [7FFE0308h], 1
+jne     &lt;module_name&gt;!&lt;Some Nt function&gt;+0x15
+</code></pre>
+<p>... for now just because that is getting too deep too soon for where I want this thread.</p>
+<p>The next thing that will happen is that <code>syscall</code> will be executed.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+                            <a rel="next prefetch" href="flow-to-syscall.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+                    <a rel="next prefetch" href="flow-to-syscall.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
